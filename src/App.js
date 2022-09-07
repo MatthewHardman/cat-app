@@ -7,20 +7,34 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import React, { useState, useEffect } from "react";
 
+let allCats = [];
+let numberOfCats = 0;
+
 function App() {
-  //const [numberOfCats, setNumberOfCats] = useState(6);
   const [catArray, setCatArray] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   const getCats = () => {
-    fetch("https://cataas.com/api/cats?limit=9", { mode: "cors" })
+    fetch("https://cataas.com/api/cats", { mode: "cors" })
       .then((response) => response.json())
       .then((response) => {
         console.log(response);
         setIsLoaded(true);
-        setCatArray(response);
+        allCats = response;
+        getMoreCats();
       })
+
       .catch((err) => console.log(err));
+  };
+
+  const getMoreCats = () => {
+    let tempCatArray = [...catArray];
+    numberOfCats = numberOfCats + 3;
+    for (let i = catArray.length; i < numberOfCats; i++) {
+      let randomIndex = Math.floor(Math.random() * allCats.length);
+      tempCatArray.push(allCats[randomIndex]);
+    }
+    setCatArray(tempCatArray);
   };
 
   useEffect(() => {
@@ -30,11 +44,7 @@ function App() {
   if (!isLoaded) return <div>Loading...</div>;
   else {
     return (
-      <Container
-        style={{
-          border: "2px solid black",
-        }}
-      >
+      <Container fluid="true">
         <Row xs={1} sm={2} md={3}>
           {catArray.map((item) => (
             <Col key={item.id}>
@@ -48,6 +58,13 @@ function App() {
             </Col>
           ))}
         </Row>
+        <Button
+          variant="secondary"
+          style={{ width: "100%" }}
+          onClick={getMoreCats}
+        >
+          See More Cats
+        </Button>
       </Container>
     );
   }
