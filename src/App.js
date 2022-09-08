@@ -6,6 +6,9 @@ import Card from "react-bootstrap/Card";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import React, { useState, useEffect } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faHeart } from "@fortawesome/free-solid-svg-icons";
+import Nav from "react-bootstrap/Nav";
 
 let allCats = [];
 let numberOfCats = 0;
@@ -13,6 +16,8 @@ let numberOfCats = 0;
 function App() {
   const [catArray, setCatArray] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [savedCats, setSavedCats] = useState([]);
+  const [view, setView] = useState("home");
 
   const getCats = () => {
     fetch("https://cataas.com/api/cats", { mode: "cors" })
@@ -37,14 +42,36 @@ function App() {
     setCatArray(tempCatArray);
   };
 
+  const saveCat = (item) => {
+    let tempArray = [...savedCats];
+    tempArray.push(item);
+    setSavedCats(tempArray);
+  };
+
+  const handleSelect = (selectedKey) => {
+    if (selectedKey === "home") {
+      setView("home");
+    } else if (selectedKey === "saved") {
+      setView("saved");
+    }
+  };
+
   useEffect(() => {
     getCats();
   }, []);
 
   if (!isLoaded) return <div>Loading...</div>;
-  else {
+  else if (view === "home") {
     return (
       <Container fluid="true">
+        <Nav variant="tabs" defaultActiveKey="home" onSelect={handleSelect}>
+          <Nav.Item>
+            <Nav.Link eventKey="home">Home</Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link eventKey="saved">Saved Cats</Nav.Link>
+          </Nav.Item>
+        </Nav>
         <Row xs={1} sm={2} md={3}>
           {catArray.map((item) => (
             <Col key={item.id}>
@@ -53,7 +80,9 @@ function App() {
                   variant="top"
                   src={"https://cataas.com/cat/" + item.id}
                 />
-                <Button>Test Button</Button>
+                <Button onClick={() => saveCat(item)}>
+                  <FontAwesomeIcon icon={faHeart} />
+                </Button>
               </Card>
             </Col>
           ))}
@@ -65,6 +94,34 @@ function App() {
         >
           See More Cats
         </Button>
+      </Container>
+    );
+  } else if (view === "saved") {
+    return (
+      <Container fluid="true">
+        <Nav variant="tabs" defaultActiveKey="home" onSelect={handleSelect}>
+          <Nav.Item>
+            <Nav.Link eventKey="home">Home</Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link eventKey="saved">Saved Cats</Nav.Link>
+          </Nav.Item>
+        </Nav>
+        <Row xs={1} sm={2} md={3}>
+          {savedCats.map((item) => (
+            <Col key={item.id}>
+              <Card>
+                <Card.Img
+                  variant="top"
+                  src={"https://cataas.com/cat/" + item.id}
+                />
+                <Button onClick={() => saveCat(item)}>
+                  <FontAwesomeIcon icon={faHeart} />
+                </Button>
+              </Card>
+            </Col>
+          ))}
+        </Row>
       </Container>
     );
   }
