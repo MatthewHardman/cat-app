@@ -44,8 +44,12 @@ function App() {
 
   const saveCat = (item) => {
     let tempArray = [...savedCats];
-    tempArray.push(item);
-    setSavedCats(tempArray);
+    if (tempArray.includes(item)) {
+      alert("You've already saved that cat!");
+    } else {
+      tempArray.push(item);
+      setSavedCats(tempArray);
+    }
   };
 
   const handleSelect = (selectedKey) => {
@@ -56,6 +60,13 @@ function App() {
     }
   };
 
+  const handleDelete = (item) => {
+    let tempArray = [...savedCats];
+    let index = tempArray.indexOf(item);
+    tempArray.splice(index, 1);
+    setSavedCats(tempArray);
+  };
+
   useEffect(() => {
     getCats();
   }, []);
@@ -63,7 +74,7 @@ function App() {
   if (!isLoaded) return <div>Loading...</div>;
   else if (view === "home") {
     return (
-      <Container fluid="true">
+      <Container>
         <Nav variant="tabs" defaultActiveKey="home" onSelect={handleSelect}>
           <Nav.Item>
             <Nav.Link eventKey="home">Home</Nav.Link>
@@ -98,7 +109,7 @@ function App() {
     );
   } else if (view === "saved") {
     return (
-      <Container fluid="true">
+      <Container>
         <Nav variant="tabs" defaultActiveKey="home" onSelect={handleSelect}>
           <Nav.Item>
             <Nav.Link eventKey="home">Home</Nav.Link>
@@ -115,8 +126,8 @@ function App() {
                   variant="top"
                   src={"https://cataas.com/cat/" + item.id}
                 />
-                <Button onClick={() => saveCat(item)}>
-                  <FontAwesomeIcon icon={faHeart} />
+                <Button variant="danger" onClick={() => handleDelete(item)}>
+                  Delete
                 </Button>
               </Card>
             </Col>
