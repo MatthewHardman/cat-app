@@ -9,15 +9,48 @@ import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeart } from "@fortawesome/free-solid-svg-icons";
 import Nav from "react-bootstrap/Nav";
+import { initializeApp } from "firebase/app";
+import {
+  getAuth,
+  signOut,
+  signInWithPopup,
+  GoogleAuthProvider,
+} from "firebase/auth";
+
+import { useAuthState } from "react-firebase-hooks/auth";
+//import { useCollectionData } from "react-firebase-hooks/firestore";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAMqfTFmnj2eRMT3KLItVBiyy0xHCsP2Cg",
+  authDomain: "aileenscatapp.firebaseapp.com",
+  projectId: "aileenscatapp",
+  storageBucket: "aileenscatapp.appspot.com",
+  messagingSenderId: "676137092790",
+  appId: "1:676137092790:web:c15df8e3e79cec1f468817",
+  measurementId: "G-RRV0Y6VLX6",
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+//const db = getFirestore(app);
 
 let allCats = [];
 let numberOfCats = 0;
 
 function App() {
+  const [user] = useAuthState(auth);
   const [catArray, setCatArray] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [savedCats, setSavedCats] = useState([]);
   const [view, setView] = useState("home");
+
+  const signInWithGoogle = () => {
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider).then((result) => {
+      const user = result.user;
+      //console.log(user);
+    });
+  };
 
   const getCats = () => {
     fetch("https://cataas.com/api/cats", { mode: "cors" })
@@ -81,6 +114,13 @@ function App() {
           </Nav.Item>
           <Nav.Item>
             <Nav.Link eventKey="saved">Saved Cats</Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            {user ? (
+              <Button onClick={() => signOut(auth)}>Sign Out</Button>
+            ) : (
+              <Button onClick={signInWithGoogle}>Sign In</Button>
+            )}
           </Nav.Item>
         </Nav>
         <Row xs={1} sm={2} md={3}>
