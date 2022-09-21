@@ -16,6 +16,14 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
 } from "firebase/auth";
+import {
+  getFirestore,
+  addDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 
 import { useAuthState } from "react-firebase-hooks/auth";
 //import { useCollectionData } from "react-firebase-hooks/firestore";
@@ -32,7 +40,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-//const db = getFirestore(app);
+const db = getFirestore(app);
 
 let allCats = [];
 let numberOfCats = 0;
@@ -44,12 +52,21 @@ function App() {
   const [savedCats, setSavedCats] = useState([]);
   const [view, setView] = useState("home");
 
-  const signInWithGoogle = () => {
+  const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    signInWithPopup(auth, provider).then((result) => {
-      const user = result.user;
-      //console.log(user);
-    });
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    console.log(user);
+    const q = query(collection(db, "users"), where("uid", "==", user.uid));
+    const docs = await getDocs(q);
+    console.log(q);
+    if (docs.docs.length === 0) {
+      await addDoc(collection(db, "users"), {
+        uid: user.uid,
+        name: user.displayName,
+        email: user.email,
+      });
+    }
   };
 
   const getCats = () => {
