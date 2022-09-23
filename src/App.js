@@ -18,11 +18,14 @@ import {
 } from "firebase/auth";
 import {
   getFirestore,
-  addDoc,
+  doc,
+  getDoc,
+  setDoc,
   collection,
   query,
   where,
   getDocs,
+  updateDoc,
 } from "firebase/firestore";
 
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -61,7 +64,7 @@ function App() {
     const docs = await getDocs(q);
     console.log(q);
     if (docs.docs.length === 0) {
-      await addDoc(collection(db, "users"), {
+      await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         name: user.displayName,
         email: user.email,
@@ -92,12 +95,23 @@ function App() {
     setCatArray(tempCatArray);
   };
 
-  const saveCat = (item) => {
+  const saveCat = async (item) => {
     let tempArray = [...savedCats];
     if (tempArray.includes(item)) {
       alert("You've already saved that cat!");
     } else {
-      tempArray.push(item);
+      tempArray.push(item.id);
+      console.log(item);
+      console.log(tempArray);
+      const user = auth.currentUser;
+      console.log(user, user.uid);
+      const userRef = doc(db, "users", user.uid);
+      //const userRef = await getDoc(docRef);
+      //console.log(userRef.data());
+      await updateDoc(userRef, {
+        storedCats: item.id,
+      });
+
       setSavedCats(tempArray);
     }
   };
