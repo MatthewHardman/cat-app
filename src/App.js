@@ -96,23 +96,41 @@ function App() {
   };
 
   const saveCat = async (item) => {
-    let tempArray = [...savedCats];
-    if (tempArray.includes(item)) {
-      alert("You've already saved that cat!");
-    } else {
-      tempArray.push(item.id);
-      console.log(item);
-      console.log(tempArray);
-      const user = auth.currentUser;
-      console.log(user, user.uid);
-      const userRef = doc(db, "users", user.uid);
-      //const userRef = await getDoc(docRef);
-      //console.log(userRef.data());
-      await updateDoc(userRef, {
-        storedCats: item.id,
-      });
+    /*Make heart change color when clicked*/
+    if (user) {
+      let tempArray = [...savedCats];
+      if (tempArray.includes(item)) {
+        alert("You've already saved that cat!");
+      } else {
+        tempArray.push(item);
+        console.log(item);
+        console.log(tempArray);
+        const user = auth.currentUser;
+        console.log(user, user.uid);
+        const userRef = doc(db, "users", user.uid);
+        //const userRef = await getDoc(docRef);
+        //console.log(userRef.data());
+        await updateDoc(userRef, {
+          storedCats: tempArray,
+        });
 
-      setSavedCats(tempArray);
+        setSavedCats(tempArray);
+      }
+    } else {
+      alert("You must sign in to save cats for later!");
+    }
+  };
+
+  const firebaseToLocal = async () => {
+    const user = auth.currentUser;
+    const docRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const userData = docSnap.data();
+      console.log(docSnap.data());
+      if (userData.hasOwnProperty("storedCats")) {
+        setSavedCats(userData.storedCats);
+      }
     }
   };
 
@@ -120,7 +138,12 @@ function App() {
     if (selectedKey === "home") {
       setView("home");
     } else if (selectedKey === "saved") {
-      setView("saved");
+      firebaseToLocal();
+      if (savedCats.length > 0) {
+        setView("saved");
+      } else {
+        setView("Error - No Saved Cats");
+      }
     }
   };
 
@@ -139,7 +162,17 @@ function App() {
   else if (view === "home") {
     return (
       <Container>
-        <Nav variant="tabs" defaultActiveKey="home" onSelect={handleSelect}>
+        <Nav
+          variant="tabs"
+          defaultActiveKey="home"
+          onSelect={handleSelect}
+          style={{
+            position: "sticky",
+            top: "0",
+            zIndex: "1",
+            backgroundColor: "white",
+          }}
+        >
           <Nav.Item>
             <Nav.Link eventKey="home">Home</Nav.Link>
           </Nav.Item>
@@ -204,6 +237,20 @@ function App() {
             </Col>
           ))}
         </Row>
+      </Container>
+    );
+  } else if (view === "Error - No Saved Cats") {
+    return (
+      <Container>
+        <Nav variant="tabs" defaultActiveKey="home" onSelect={handleSelect}>
+          <Nav.Item>
+            <Nav.Link eventKey="home">Home</Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link eventKey="saved">Saved Cats</Nav.Link>
+          </Nav.Item>
+        </Nav>
+        <h1>Log in and save some cats first!</h1>
       </Container>
     );
   }
