@@ -29,7 +29,6 @@ import {
 } from "firebase/firestore";
 
 import { useAuthState } from "react-firebase-hooks/auth";
-//import { useCollectionData } from "react-firebase-hooks/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAMqfTFmnj2eRMT3KLItVBiyy0xHCsP2Cg",
@@ -50,6 +49,7 @@ let numberOfCats = 0;
 
 function App() {
   const [user] = useAuthState(auth);
+  const [userName, setUserName] = useState();
   const [catArray, setCatArray] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [savedCats, setSavedCats] = useState([]);
@@ -62,7 +62,6 @@ function App() {
     console.log(user);
     const q = query(collection(db, "users"), where("uid", "==", user.uid));
     const docs = await getDocs(q);
-    console.log(q);
     if (docs.docs.length === 0) {
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
@@ -90,13 +89,17 @@ function App() {
     numberOfCats = numberOfCats + 3;
     for (let i = catArray.length; i < numberOfCats; i++) {
       let randomIndex = Math.floor(Math.random() * allCats.length);
-      tempCatArray.push(allCats[randomIndex]);
+      let newCat = allCats[randomIndex];
+      if (tempCatArray.includes(newCat)) {
+        i--;
+      } else {
+        tempCatArray.push(newCat);
+      }
     }
     setCatArray(tempCatArray);
   };
 
   const saveCat = async (item) => {
-    /*Make heart change color when clicked*/
     if (user) {
       let tempArray = [...savedCats];
       if (tempArray.includes(item)) {
@@ -108,8 +111,6 @@ function App() {
         const user = auth.currentUser;
         console.log(user, user.uid);
         const userRef = doc(db, "users", user.uid);
-        //const userRef = await getDoc(docRef);
-        //console.log(userRef.data());
         await updateDoc(userRef, {
           storedCats: tempArray,
         });
@@ -125,21 +126,24 @@ function App() {
     const user = auth.currentUser;
     const docRef = doc(db, "users", user.uid);
     const docSnap = await getDoc(docRef);
+    setUserName(user.displayName);
     if (docSnap.exists()) {
       const userData = docSnap.data();
-      console.log(docSnap.data());
       if (userData.hasOwnProperty("storedCats")) {
         setSavedCats(userData.storedCats);
+        return new Promise((resolve) => {
+          resolve("resolved");
+        });
       }
     }
   };
 
-  const handleSelect = (selectedKey) => {
+  const handleSelect = async (selectedKey) => {
     if (selectedKey === "home") {
       setView("home");
     } else if (selectedKey === "saved") {
-      firebaseToLocal();
-      if (savedCats.length > 0) {
+      const result = await firebaseToLocal();
+      if (result === "resolved") {
         setView("saved");
       } else {
         setView("Error - No Saved Cats");
@@ -147,10 +151,15 @@ function App() {
     }
   };
 
-  const handleDelete = (item) => {
+  const handleDelete = async (item) => {
     let tempArray = [...savedCats];
     let index = tempArray.indexOf(item);
     tempArray.splice(index, 1);
+    const user = auth.currentUser;
+    const userRef = doc(db, "users", user.uid);
+    await updateDoc(userRef, {
+      storedCats: tempArray,
+    });
     setSavedCats(tempArray);
   };
 
@@ -163,6 +172,7 @@ function App() {
     return (
       <Container>
         <Nav
+          justify
           variant="tabs"
           defaultActiveKey="home"
           onSelect={handleSelect}
@@ -214,12 +224,26 @@ function App() {
   } else if (view === "saved") {
     return (
       <Container>
-        <Nav variant="tabs" defaultActiveKey="home" onSelect={handleSelect}>
+        <Nav
+          justify
+          variant="tabs"
+          defaultActiveKey="saved"
+          onSelect={handleSelect}
+          style={{
+            position: "sticky",
+            top: "0",
+            zIndex: "1",
+            backgroundColor: "white",
+          }}
+        >
           <Nav.Item>
             <Nav.Link eventKey="home">Home</Nav.Link>
           </Nav.Item>
           <Nav.Item>
             <Nav.Link eventKey="saved">Saved Cats</Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <h4>Welcome, {userName}!</h4>
           </Nav.Item>
         </Nav>
         <Row xs={1} sm={2} md={3}>
@@ -242,7 +266,7 @@ function App() {
   } else if (view === "Error - No Saved Cats") {
     return (
       <Container>
-        <Nav variant="tabs" defaultActiveKey="home" onSelect={handleSelect}>
+        <Nav variant="tabs" defaultActiveKey="saved" onSelect={handleSelect}>
           <Nav.Item>
             <Nav.Link eventKey="home">Home</Nav.Link>
           </Nav.Item>
