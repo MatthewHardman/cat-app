@@ -114,7 +114,7 @@ function App() {
         await updateDoc(userRef, {
           storedCats: tempArray,
         });
-
+        alert("Saved!");
         setSavedCats(tempArray);
       }
     } else {
