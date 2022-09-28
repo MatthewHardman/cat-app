@@ -123,17 +123,19 @@ function App() {
   };
 
   const firebaseToLocal = async () => {
-    const user = auth.currentUser;
-    const docRef = doc(db, "users", user.uid);
-    const docSnap = await getDoc(docRef);
-    setUserName(user.displayName);
-    if (docSnap.exists()) {
-      const userData = docSnap.data();
-      if (userData.hasOwnProperty("storedCats")) {
-        setSavedCats(userData.storedCats);
-        return new Promise((resolve) => {
-          resolve("resolved");
-        });
+    if (user) {
+      const user = auth.currentUser;
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
+      setUserName(user.displayName);
+      if (docSnap.exists()) {
+        const userData = docSnap.data();
+        if (userData.hasOwnProperty("storedCats")) {
+          setSavedCats(userData.storedCats);
+          return new Promise((resolve) => {
+            resolve("resolved");
+          });
+        }
       }
     }
   };
@@ -266,7 +268,12 @@ function App() {
   } else if (view === "Error - No Saved Cats") {
     return (
       <Container>
-        <Nav variant="tabs" defaultActiveKey="saved" onSelect={handleSelect}>
+        <Nav
+          justify
+          variant="tabs"
+          defaultActiveKey="saved"
+          onSelect={handleSelect}
+        >
           <Nav.Item>
             <Nav.Link eventKey="home">Home</Nav.Link>
           </Nav.Item>
