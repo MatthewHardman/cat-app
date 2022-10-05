@@ -54,6 +54,7 @@ function App() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [savedCats, setSavedCats] = useState([]);
   const [view, setView] = useState("home");
+  const [isClicked, setIsClicked] = useState(false);
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
@@ -75,13 +76,14 @@ function App() {
     fetch("https://cataas.com/api/cats", { mode: "cors" })
       .then((response) => response.json())
       .then((response) => {
-        console.log(response);
         setIsLoaded(true);
         allCats = response;
         getMoreCats();
       })
 
       .catch((err) => console.log(err));
+    setIsLoaded(true);
+    setView("Error - fetch failed");
   };
 
   const getMoreCats = () => {
@@ -101,6 +103,7 @@ function App() {
 
   const saveCat = async (item) => {
     if (user) {
+      setIsClicked(true);
       let tempArray = [...savedCats];
       if (tempArray.includes(item)) {
         alert("You've already saved that cat!");
@@ -207,7 +210,10 @@ function App() {
                   variant="top"
                   src={"https://cataas.com/cat/" + item.id}
                 />
-                <Button onClick={() => saveCat(item)}>
+                <Button
+                  style={{ color: isClicked ? "white" : "" }}
+                  onClick={() => saveCat(item)}
+                >
                   <FontAwesomeIcon icon={faHeart} />
                 </Button>
               </Card>
@@ -282,6 +288,27 @@ function App() {
           </Nav.Item>
         </Nav>
         <h1>Log in and save some cats first!</h1>
+      </Container>
+    );
+  } else if (view === "Error - fetch failed") {
+    return (
+      <Container>
+        <Nav justify variant="tabs" onSelect={handleSelect}>
+          <Nav.Item>
+            <Nav.Link eventKey="home" disabled>
+              Home
+            </Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link eventKey="saved" disabled>
+              Saved Cats
+            </Nav.Link>
+          </Nav.Item>
+        </Nav>
+        <h3>
+          It appears the website that supplies our cats is down. We're sorry
+          about that. Please try again later.
+        </h3>
       </Container>
     );
   }
