@@ -54,7 +54,6 @@ function App() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [savedCats, setSavedCats] = useState([]);
   const [view, setView] = useState("home");
-  const [isClicked, setIsClicked] = useState(false);
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
@@ -80,10 +79,11 @@ function App() {
         allCats = response;
         getMoreCats();
       })
-
-      .catch((err) => console.log(err));
-    setIsLoaded(true);
-    setView("Error - fetch failed");
+      .catch((err) => {
+        console.log(err);
+        setIsLoaded(true);
+        setView("Error - fetch failed");
+      });
   };
 
   const getMoreCats = () => {
@@ -101,9 +101,9 @@ function App() {
     setCatArray(tempCatArray);
   };
 
-  const saveCat = async (item) => {
+  const saveCat = async (item, event) => {
     if (user) {
-      setIsClicked(true);
+      event.currentTarget.style.color = "pink";
       let tempArray = [...savedCats];
       if (tempArray.includes(item)) {
         alert("You've already saved that cat!");
@@ -117,7 +117,6 @@ function App() {
         await updateDoc(userRef, {
           storedCats: tempArray,
         });
-        alert("Saved!");
         setSavedCats(tempArray);
       }
     } else {
@@ -210,10 +209,7 @@ function App() {
                   variant="top"
                   src={"https://cataas.com/cat/" + item.id}
                 />
-                <Button
-                  style={{ color: isClicked ? "white" : "" }}
-                  onClick={() => saveCat(item)}
-                >
+                <Button onClick={(event) => saveCat(item, event)}>
                   <FontAwesomeIcon icon={faHeart} />
                 </Button>
               </Card>
