@@ -109,8 +109,6 @@ function App() {
         alert("You've already saved that cat!");
       } else {
         tempArray.push(item);
-        console.log(item);
-        console.log(tempArray);
         const user = auth.currentUser;
         console.log(user, user.uid);
         const userRef = doc(db, "users", user.uid);
